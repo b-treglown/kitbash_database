@@ -111,7 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     console.log('[upload] Uploading to Supabase Storage...');
     const uploadResponse = await supabase.storage
-      .from('images')
+      .from('uploaded_images')
       .upload(storagePath, buffer, {
         contentType: file.type,
         cacheControl: '31536000', // 1 year
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Get public URL
     console.log('[upload] Generating public URL for:', storagePath);
     const urlResponse = supabase.storage
-      .from('images')
+      .from('uploaded_images')
       .getPublicUrl(storagePath);
 
     const publicUrlData = urlResponse?.data;
