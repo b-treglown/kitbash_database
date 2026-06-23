@@ -1,12 +1,10 @@
 /**
- * API Route: Upload image to Cloudflare R2
+ * API Route: Upload image to Supabase Storage
  * POST /api/upload
  */
 
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { supabase } from '@/lib/supabaseClient';
 import {
   enforceRateLimit,
   isSafePathSegment,
@@ -16,7 +14,7 @@ import {
 } from '@/lib/requestSecurity';
 
 /**
- * Uses Cloudflare R2 when configured, otherwise saves to /public/uploads for local dev.
+ * Uploads file to Supabase Storage bucket
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -49,15 +47,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Validate file
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      return secureJson({ error: 'File too large' }, { status: 400 });
+      return secureJson({ error: 'File too large (max 10MB)' }, { status: 400 });
     }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
-      return secureJson({ error: 'Unsupported file type' }, { status: 400 });
+      return secureJson({ error: 'Unsupported file type (JPEG, PNG, WebP, GIF only)' }, { status: 400 });
     }
 
-    // Generate filename and storage key
+    // Generate filename and storage path
     const timestamp = Date.now();
     const randomId = crypto.randomUUID();
     const extMap: Record<string, string> = {
@@ -68,75 +66,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
     const ext = extMap[file.type] || 'jpg';
     const filename = `${type}-${timestamp}-${randomId}.${ext}`;
-    const relativeDir = join('uploads', prefix).replace(/\\/g, '/');
-    const storageKey = `${relativeDir}/${filename}`;
+    const storagePath = `${prefix}/${filename}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const accountId = process.env.NEXT_PUBLIC_R2_ACCOUNT_ID;
-    const bucket = process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
-    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-    const publicBaseUrl =
-      process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || process.env.R2_CDN_URL || '';
-
-    const r2Configured =
-      !!accountId && !!bucket && !!accessKeyId && !!secretAccessKey;
-
-    if (r2Configured) {
-      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
-      const s3 = new S3Client({
-        region: 'auto',
-        endpoint,
-        credentials: {
-          accessKeyId,
-          secretAccessKey,
-        },
+    // Upload to Supabase Storage
+    const { data, error: uploadError } = await supabase.storage
+      .from('images')
+      .upload(storagePath, buffer, {
+        contentType: file.type,
+        cacheControl: '31536000', // 1 year
+        upsert: false,
       });
 
-      await s3.send(
-        new PutObjectCommand({
-          Bucket: bucket,
-          Key: storageKey,
-          Body: buffer,
-          ContentType: file.type,
-          CacheControl: 'public, max-age=31536000, immutable',
-        })
-      );
-
-      const url = publicBaseUrl
-        ? `${publicBaseUrl.replace(/\/$/, '')}/${storageKey}`
-        : `https://${bucket}.${accountId}.r2.cloudflarestorage.com/${storageKey}`;
-
-      return secureJson(
-        {
-          success: true,
-          url,
-          filename,
-          key: storageKey,
-          provider: 'r2',
-        },
-        { status: 200 }
-      );
+    if (uploadError) {
+      console.error('Supabase storage error:', uploadError);
+      return secureJson({ error: 'Upload failed' }, { status: 500 });
     }
 
-    // Local fallback
-    const absoluteDir = join(process.cwd(), 'public', relativeDir);
-    const filepath = join(absoluteDir, filename);
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('images')
+      .getPublicUrl(storagePath);
 
-    await mkdir(absoluteDir, { recursive: true });
-    await writeFile(filepath, buffer);
-
-    const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
-    const url = `${origin}/${storageKey}`;
+    const publicUrl = publicUrlData.publicUrl;
 
     return secureJson(
       {
         success: true,
-        url,
+        url: publicUrl,
         filename,
-        key: storageKey,
-        provider: 'local',
+        path: storagePath,
+        provider: 'supabase',
       },
       { status: 200 }
     );

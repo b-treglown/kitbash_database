@@ -6,12 +6,6 @@
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "Supabase project URL",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "Supabase anonymous key",
-    "NEXT_PUBLIC_R2_BUCKET_NAME": "Cloudflare R2 bucket name (default: kitbash-media)",
-    "NEXT_PUBLIC_R2_ACCOUNT_ID": "Cloudflare R2 account ID",
-    "R2_ACCESS_KEY_ID": "R2 API access key ID",
-    "R2_SECRET_ACCESS_KEY": "R2 API secret access key",
-    "NEXT_PUBLIC_R2_PUBLIC_BASE_URL": "Public URL for R2 bucket (e.g., https://cdn.example.com)",
-    "R2_CDN_URL": "CDN URL for R2 images",
     "WRITE_API_TOKEN": "API token for write operations",
     "ADMIN_API_TOKEN": "API token for admin operations",
     "NEXT_PUBLIC_APP_URL": "Public app URL"

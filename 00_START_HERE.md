@@ -9,7 +9,7 @@ This is a complete, production-ready skeleton for a **community-driven action fi
 - ✅ **Service layer** abstraction (all DB access goes through services, never direct from UI)
 - ✅ **API routes** for CRUD operations on all entities
 - ✅ **Search system** with fuzzy matching, aliases, and duplicate detection (Phase 3 complete)
-- ✅ **Image handling** utilities for Cloudflare R2 integration
+- ✅ **Image handling** utilities for Supabase Storage integration
 
 ### Frontend
 - ✅ **Next.js 14** app with TypeScript
@@ -24,7 +24,7 @@ This is a complete, production-ready skeleton for a **community-driven action fi
 - ✅ **GETTING_STARTED.md** — Quick start (read this first!)
 - ✅ **SETUP_CHECKLIST.md** — Step-by-step verification
 - ✅ **SUPABASE_SETUP.md** — Database configuration
-- ✅ **DEPLOYMENT_CLOUDFLARE_VERCEL.md** — Cloudflare + Vercel hosting setup
+- ✅ **DEPLOYMENT_CLOUDFLARE_VERCEL.md** — Vercel deployment setup
 - ✅ **VERCEL_ENV_SETUP.md** — One-click Vercel environment variable import
 - ✅ **ADMIN_MODERATION_GUIDE.md** — How to approve/apply community contributions
 - ✅ **DEVELOPMENT_ROADMAP.md** — How to build Phase 2-3 features
@@ -62,7 +62,6 @@ This is a complete, production-ready skeleton for a **community-driven action fi
 ├── 📁 lib/
 │   ├── supabaseClient.ts          ← Supabase config
 │   ├── types.ts                   ← TypeScript types
-│   ├── r2.ts                      ← Image utilities
 │   ├── utils.ts                   ← Helper functions
 │   ├── schema.sql                 ← Database schema
 │   └── database.types.ts          ← Auto-generated types
@@ -100,7 +99,7 @@ http://localhost:3000
 3. [**PROJECT_STRUCTURE.md**](PROJECT_STRUCTURE.md) — Understand the layout
 4. [**README.md**](README.md) — Full architecture details
 5. [**DEVELOPMENT_ROADMAP.md**](DEVELOPMENT_ROADMAP.md) — Build Phase 2-3 features
-6. [**DEPLOYMENT_CLOUDFLARE_VERCEL.md**](DEPLOYMENT_CLOUDFLARE_VERCEL.md) — Deploy frontend + image hosting
+6. [**DEPLOYMENT_CLOUDFLARE_VERCEL.md**](DEPLOYMENT_CLOUDFLARE_VERCEL.md) — Vercel deployment setup
 7. [**VERCEL_ENV_SETUP.md**](VERCEL_ENV_SETUP.md) — Quick environment variable setup for Vercel
 8. [**ADMIN_MODERATION_GUIDE.md**](ADMIN_MODERATION_GUIDE.md) — Review and approve community contributions
 
@@ -109,7 +108,7 @@ http://localhost:3000
 ### Phase 1: Foundation ✅
 - Database schema with all relationships
 - CRUD operations for figures, parts, molds, kitbashes
-- Image upload infrastructure with Cloudflare R2 support
+- Image upload infrastructure with Supabase Storage support
 - Type definitions
 
 ### Phase 2: Graph Features (Ready for UI)
@@ -142,7 +141,7 @@ Why? → Makes it mobile-app-ready. Change UI layer only, services stay the same
 User submissions are "claims", not absolute truth. This allows the graph to grow collaboratively without conflicts.
 
 ### 3. Images External Only
-Images stored in Cloudflare R2, only URLs in database. Keeps database lean and supports future media features.
+Images stored in Supabase Storage, only URLs in database. Keeps database lean and supports future media features.
 
 ### 4. Type Safety
 Full TypeScript throughout. `lib/types.ts` defines all core types. Auto-generated database types from Supabase schema.

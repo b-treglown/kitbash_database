@@ -98,7 +98,7 @@ Adds direct file upload capability to the Figure Information submission form, wi
 ### Features
 
 **Two Ways to Add Images**
-1. **Upload File** — Drag/drop or select image, automatically uploads to R2
+1. **Upload File** — Drag/drop or select image, automatically uploads to Supabase Storage
 2. **Paste URL** — Manually enter an image URL
 
 **Image Preview**
@@ -113,7 +113,7 @@ Adds direct file upload capability to the Figure Information submission form, wi
 **Upload Workflow**
 1. Select a local image file
 2. Click "Upload Image"
-3. File is uploaded to Cloudflare R2
+3. File is uploaded to Supabase Storage
 4. Public URL is automatically set in the form
 5. Continue filling out figure details
 6. Submit the claim
@@ -180,9 +180,9 @@ Adds direct file upload capability to the Figure Information submission form, wi
 ## What Happens in Production?
 
 ### Image Upload
-- Files uploaded to Cloudflare R2
+- Files uploaded to Supabase Storage bucket 'images'
 - Public URL returned and stored in claim
-- Images served from R2 CDN (fast, reliable)
+- Images served via Supabase CDN (fast, reliable)
 
 ### Admin Moderation
 - Claims stored in Supabase `claims` table
