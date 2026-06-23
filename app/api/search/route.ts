@@ -5,12 +5,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import * as searchService from '@/services/searchService';
+import { enforceRateLimit, sanitizeText, secureJson } from '@/lib/requestSecurity';
 
 export async function GET(request: NextRequest) {
   try {
+    const limited = enforceRateLimit(request, 'api:search:get', 90, 60_000);
+    if (limited) {
+      return limited;
+    }
+
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
+    const queryRaw = searchParams.get('q');
     const typeParam = searchParams.get('type');
+    const methodParam = searchParams.get('method') || 'global'; // global, fuzzy, alias
     const type =
       typeParam === 'figure' ||
       typeParam === 'part' ||
@@ -19,10 +26,15 @@ export async function GET(request: NextRequest) {
       typeParam === 'line'
         ? typeParam
         : undefined;
-    const method = searchParams.get('method') || 'global'; // global, fuzzy, alias
+    const method =
+      methodParam === 'global' || methodParam === 'fuzzy' || methodParam === 'alias'
+        ? methodParam
+        : 'global';
 
-    if (!query || query.length < 2) {
-      return NextResponse.json(
+    const query = queryRaw ? sanitizeText(queryRaw, 100) : '';
+
+    if (query.length < 2) {
+      return secureJson(
         { error: 'Query too short' },
         { status: 400 }
       );
@@ -41,7 +53,7 @@ export async function GET(request: NextRequest) {
         results = await searchService.globalSearch(query);
     }
 
-    return NextResponse.json({
+    return secureJson({
       query,
       method,
       resultCount: results.length,
@@ -49,7 +61,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error in GET /api/search:', error);
-    return NextResponse.json(
+    return secureJson(
       { error: 'Search failed' },
       { status: 500 }
     );

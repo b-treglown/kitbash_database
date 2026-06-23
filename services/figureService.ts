@@ -54,15 +54,13 @@ export async function getFigures(line?: string): Promise<Figure[]> {
     console.error('Error fetching figures:', error);
     throw error;
   }
-
-  console.log('Supabase response:', { data, error });
   
   if (!data) {
     console.warn('No data returned from Supabase figures query');
     return [];
   }
 
-  return (data || []).map((row: any) => {
+  const mapped: Array<Figure | null> = (data || []).map((row: any) => {
     if (!row) {
       console.warn('Row is null/undefined in map');
       return null;
@@ -77,7 +75,9 @@ export async function getFigures(line?: string): Promise<Figure[]> {
       created_at: row.created_at,
       updated_at: row.updated_at,
     };
-  }).filter(Boolean);
+  });
+
+  return mapped.filter((row): row is Figure => row !== null);
 }
 
 /**

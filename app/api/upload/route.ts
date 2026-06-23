@@ -3,9 +3,16 @@
  * POST /api/upload
  */
 
-import { writeFile } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  enforceRateLimit,
+  isSafePathSegment,
+  requireWriteToken,
+  sanitizeText,
+  secureJson,
+} from '@/lib/requestSecurity';
 
 /**
  * For local development, saves to /public/uploads
@@ -13,44 +20,69 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const limited = enforceRateLimit(request, 'api:upload:post', 20, 60_000);
+    if (limited) {
+      return limited;
+    }
+
+    const authError = requireWriteToken(request);
+    if (authError) {
+      return authError;
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const prefix = (formData.get('prefix') as string) || 'uploads';
-    const type = (formData.get('type') as string) || 'image';
+    const prefixRaw = (formData.get('prefix') as string) || 'uploads';
+    const typeRaw = (formData.get('type') as string) || 'image';
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return secureJson({ error: 'No file provided' }, { status: 400 });
     }
+
+    const prefix = sanitizeText(prefixRaw, 80);
+    if (!isSafePathSegment(prefix)) {
+      return secureJson({ error: 'Invalid upload prefix' }, { status: 400 });
+    }
+
+    const type = typeRaw === 'thumbnail' ? 'thumbnail' : 'image';
 
     // Validate file
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      return NextResponse.json({ error: 'File too large' }, { status: 400 });
+      return secureJson({ error: 'File too large' }, { status: 400 });
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      return secureJson({ error: 'Unsupported file type' }, { status: 400 });
     }
 
     // Generate filename
     const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(7);
-    const ext = file.name.split('.').pop() || 'jpg';
-    const filename = `${timestamp}-${randomId}.${ext}`;
-    const filepath = join('/public', prefix, filename);
+    const randomId = crypto.randomUUID();
+    const extMap: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+    };
+    const ext = extMap[file.type] || 'jpg';
+    const filename = `${type}-${timestamp}-${randomId}.${ext}`;
+    const relativeDir = join('uploads', prefix);
+    const absoluteDir = join(process.cwd(), 'public', relativeDir);
+    const filepath = join(absoluteDir, filename);
 
     // For local dev, save to public folder
     // In production, this would upload to R2
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    try {
-      // Create uploads directory if it doesn't exist
-      // Note: In production, this would be handled by R2
-      // For local dev, ensure the directory exists
-      // This is a simplified approach for development
-    } catch (err) {
-      console.error('Error creating directory:', err);
-    }
 
-    const url = `${process.env.NEXT_PUBLIC_APP_URL}/${prefix}/${filename}`;
+    await mkdir(absoluteDir, { recursive: true });
+    await writeFile(filepath, buffer);
 
-    return NextResponse.json(
+    const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+    const url = `${origin}/${relativeDir.replace(/\\/g, '/')}/${filename}`;
+
+    return secureJson(
       {
         success: true,
         url,
@@ -60,6 +92,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return secureJson({ error: 'Upload failed' }, { status: 500 });
   }
 }
