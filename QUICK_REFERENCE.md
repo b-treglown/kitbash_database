@@ -1,157 +1,113 @@
-# Quick Reference Card
+# Quick Reference
 
-Copy & paste these common operations.
+Essential commands and patterns for kitbash-database development.
 
-## Fetch Data (Server Component)
+## Getting Started
 
-```typescript
-import * as figureService from '@/services/figureService';
+```bash
+# Install dependencies
+npm install
 
-// Get all figures
-const figures = await figureService.getFigures();
+# Run dev server (auto-selects port if 3000 is taken)
+npm run dev
 
-// Get figures by line with pagination
-const { figures, total, pages } = await figureService.getFiguresByLine(
-  'Marvel Legends',
-  1,
-  20
-);
+# Type-check TypeScript
+npm run type-check
 
-// Search figures
-const results = await figureService.searchFigures('Spider');
+# Build for production
+npm run build
 
-// Get single figure
-const figure = await figureService.getFigureById('uuid-here');
+# Run tests
+npm test
 ```
 
-## Search (Phase 3)
+## Environment Variables
 
-```typescript
-import * as searchService from '@/services/searchService';
-
-// Global search (all entity types)
-const allResults = await searchService.globalSearch('Vulcan');
-
-// Fuzzy search (intelligent matching)
-const moldMatches = await searchService.fuzzySearch('valcan', 'mold');
-
-// Search with aliases
-const aliasResults = await searchService.searchWithAliases('ML Vulcan');
-
-// Find duplicates
-const figureDupes = await searchService.findDuplicateFigures();
-const moldDupes = await searchService.findDuplicateMolds();
-
-// Register an alias
-await searchService.registerAlias('mold', 'mold-uuid', 'Vulcan');
+**Required in `.env.local`:**
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key_here
+WRITE_API_TOKEN=your_token_here
+ADMIN_API_TOKEN=your_token_here
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-## Create Data (Server Action or API)
+**Deployed on Vercel**: Set same vars in project settings.
 
-```typescript
-// Create figure
-const newFigure = await figureService.createFigure({
-  name: 'Spider-Man',
-  line: 'Marvel Legends',
-  year: 2012,
-  metadata: { character: 'Spider-Man' }
-});
+## API Endpoints
 
-// Create kitbash
-const newKitbash = await kitbashService.createKitbash({
-  name: 'Custom Spider-Man',
-  parts: [
-    { part_id: 'head-uuid', position: 'head' },
-    { part_id: 'torso-uuid', position: 'torso' }
-  ],
-  image_url: 'https://cdn.example.com/image.jpg',
-  tags: ['spider-man', 'custom'],
-  creator: 'user123'
-});
-
-// Create mold
-const newMold = await moldService.createMold({
-  name: 'Vulcan Buck',
-  aliases: ['Vulcan', 'Standard ML'],
-  confidence_score: 0.95
-});
+**Figures:**
+```bash
+GET    /api/figures/[id]              # Get figure with parts (returns viewModel)
 ```
 
-## Update Data
-
-```typescript
-// Update figure
-await figureService.updateFigure('figure-uuid', {
-  year: 2013,
-  metadata: { updated: true }
-});
-
-// Add tag to kitbash
-await kitbashService.addKitbashTag('kitbash-uuid', 'custom-paint');
-
-// Add alias to mold
-await moldService.addMoldAlias('mold-uuid', 'New Alias Name');
+**Admin Operations (requires ADMIN_API_TOKEN):**
+```bash
+POST   /api/admin/detect-bucks        # Run buck detection sweep
+POST   /api/admin/nightly-graph-sweep # Run graph integrity validation
 ```
 
-## Upload Image
+**Image Upload (requires WRITE_API_TOKEN):**
+```bash
+POST   /api/upload/image              # Upload to Supabase Storage
+```
+
+## Data Transformation Pipeline
+
+Figure data flows through: **raw → normalize → dedupe → group → viewModel**
 
 ```typescript
-import { uploadToR2 } from '@/lib/r2';
+import { transformFigureData } from '@/lib/figureTransformationPipeline';
 
-const result = await uploadToR2({
-  file: imageFile, // File object from input
-  prefix: 'kitbashes',
-  type: 'image'
-});
+// API already applies this, but can use directly:
+const viewModel = transformFigureData(figure, rawParts);
 
-if (result.success) {
-  const imageUrl = result.url;
-  // Save to kitbash
-} else {
-  console.error(result.error);
+// viewModel structure:
+{
+  title: string,
+  baseBuck: string,
+  parts: {
+    head: Part[],
+    torso: Part[],
+    arms: Part[],
+    legs: Part[],
+    accessory: Part[]
+  },
+  summary: {
+    totalParts: number,
+    bodyPartsCovered: PartType[]
+  }
 }
 ```
 
-## Fetch via API (Frontend)
+## Database Schema
 
-```typescript
-// Search
-const response = await fetch(
-  `/api/search?q=Vulcan&method=fuzzy&type=mold`
-);
-const data = await response.json();
+**Key Tables:**
+- `figures` - Action figures
+- `figure_parts` - Parts used in figures
+- `part_definitions` - Part catalog
+- `mold_families` - Part mold groupings
+- `part_compatibility` - Part swap rules
+- `kitbashes` - Custom figure builds
+- `kitbash_parts` - Parts in kitbashes
+- `mold_family_usage` - Materialized view for stats
 
-// Get figures
-const figResponse = await fetch('/api/figures?line=Marvel');
-const figures = await figResponse.json();
+**Images:** Stored in Supabase Storage bucket `images` (public access).
 
-// Create figure
-const createResponse = await fetch('/api/figures', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    name: 'New Figure',
-    line: 'Marvel Legends'
-  })
-});
-```
-
-## React Component Patterns
+## React Patterns
 
 **Server Component (async):**
 ```typescript
-import * as figureService from '@/services/figureService';
+import { supabase } from '@/lib/supabaseClient';
 
-export default async function FigureList() {
-  const figures = await figureService.getFigures();
+export default async function Page({ params }: { params: { id: string } }) {
+  const { data } = await supabase
+    .from('figures')
+    .select('*')
+    .eq('id', params.id)
+    .single();
 
-  return (
-    <div>
-      {figures.map((fig) => (
-        <div key={fig.id}>{fig.name}</div>
-      ))}
-    </div>
-  );
+  return <div>{data.name}</div>;
 }
 ```
 
@@ -159,45 +115,53 @@ export default async function FigureList() {
 ```typescript
 'use client';
 import { useState } from 'react';
-import SearchInput from '@/components/SearchInput';
 
-export default function SearchPage() {
-  const [results, setResults] = useState([]);
+export default function Form() {
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = async (query: string) => {
-    const response = await fetch(
-      `/api/search?q=${encodeURIComponent(query)}`
-    );
-    const data = await response.json();
-    setResults(data.results);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const res = await fetch('/api/endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ /* data */ })
+    });
+    setLoading(false);
   };
 
-  return (
-    <div>
-      <SearchInput onSearch={handleSearch} />
-      {results.map((r) => (
-        <ResultCard key={`${r.type}-${r.id}`} result={r} />
-      ))}
-    </div>
-  );
+  return <form onSubmit={handleSubmit}>...</form>;
 }
 ```
 
-## Common Utilities
+## Key Directories
 
-```typescript
-import {
-  debounce,
-  throttle,
-  formatDate,
-  slugify,
-  isEmpty,
-  deepClone
-} from '@/lib/utils';
+```
+/app               - Next.js App Router pages and API routes
+/lib               - Shared utilities, database client, pipelines
+/components        - Reusable React components
+/services          - Business logic layer (mostly deprecated, use lib/ instead)
+/public            - Static assets
+/.github/workflows - Scheduled jobs (nightly buck detection, graph integrity sweep)
+```
 
-// Debounce search
-const debouncedSearch = debounce((query: string) => {
-  // perform search
+## Common Tasks
+
+**Test API endpoint:**
+```powershell
+$response = Invoke-RestMethod -Uri "http://localhost:3000/api/figures/[id]" -Method Get
+$response | ConvertTo-Json
+```
+
+**Deploy to Vercel:**
+```bash
+git push origin main  # Automatically triggers Vercel deployment
+```
+
+**Run type checking before commit:**
+```bash
+npm run type-check && git add -A && git commit -m "message"
+```
 }, 300);
 
 // Format date
