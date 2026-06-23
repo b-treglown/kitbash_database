@@ -8,16 +8,16 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- Get the line IDs for figures insert
-INSERT INTO figures (name, line_id, year, metadata)
-SELECT v.fname, l.id, v.year, v.metadata::jsonb
+INSERT INTO figures (name, line_id, base_buck, year, metadata)
+SELECT v.fname, l.id, v.base_buck, v.year, v.metadata::jsonb
 FROM lines l
 CROSS JOIN (
   VALUES
-    ('Vulcan', 'Marvel Legends', 2023, '{"character": "Vulcan"}'),
-    ('Astonishing Cyclops', 'Marvel Legends', 2024, '{"character": "Cyclops"}'),
-    ('Havok', 'Marvel Legends', 2024, '{"character": "Havok"}'),
-    ('Retro Spider-Man', 'Marvel Legends', 2020, '{"character": "Spider-Man"}')
-) AS v(fname, line_name, year, metadata)
+    ('Vulcan', 'Marvel Legends', 'Vulcan Buck', 2023, '{"character": "Vulcan"}'),
+    ('Astonishing Cyclops', 'Marvel Legends', 'Vulcan Buck', 2024, '{"character": "Cyclops"}'),
+    ('Havok', 'Marvel Legends', 'Vulcan Buck', 2024, '{"character": "Havok"}'),
+    ('Retro Spider-Man', 'Marvel Legends', 'unique', 2020, '{"character": "Spider-Man"}')
+) AS v(fname, line_name, base_buck, year, metadata)
 WHERE l.name = v.line_name
 ON CONFLICT (name, line_id) DO NOTHING;
 

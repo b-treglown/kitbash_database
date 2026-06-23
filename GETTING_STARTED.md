@@ -36,6 +36,10 @@ Open `http://localhost:3000` and:
 | [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | File organization & quick reference |
 | [README.md](README.md) | Full architecture & API docs |
 | [SETUP_CHECKLIST.md](SETUP_CHECKLIST.md) | Step-by-step verification |
+| [FEATURE_SUMMARY.md](FEATURE_SUMMARY.md) | ⭐ New features: admin moderation, direct image upload, Vercel setup |
+| [VERCEL_ENV_SETUP.md](VERCEL_ENV_SETUP.md) | One-click Vercel environment configuration |
+| [ADMIN_MODERATION_GUIDE.md](ADMIN_MODERATION_GUIDE.md) | How to review & approve community contributions |
+| [DEPLOYMENT_CLOUDFLARE_VERCEL.md](DEPLOYMENT_CLOUDFLARE_VERCEL.md) | Production hosting setup |
 
 ## 🔧 Development
 

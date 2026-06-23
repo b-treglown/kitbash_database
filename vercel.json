@@ -1,0 +1,54 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "nodeVersion": "20.x",
+  "env": [
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_URL",
+      "description": "Supabase project URL"
+    },
+    {
+      "key": "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      "description": "Supabase anonymous key"
+    },
+    {
+      "key": "NEXT_PUBLIC_R2_BUCKET_NAME",
+      "description": "Cloudflare R2 bucket name",
+      "value": "kitbash-media"
+    },
+    {
+      "key": "NEXT_PUBLIC_R2_ACCOUNT_ID",
+      "description": "Cloudflare R2 account ID"
+    },
+    {
+      "key": "R2_ACCESS_KEY_ID",
+      "description": "R2 API access key ID"
+    },
+    {
+      "key": "R2_SECRET_ACCESS_KEY",
+      "description": "R2 API secret access key"
+    },
+    {
+      "key": "NEXT_PUBLIC_R2_PUBLIC_BASE_URL",
+      "description": "Public URL for R2 bucket (e.g., https://cdn.example.com)"
+    },
+    {
+      "key": "R2_CDN_URL",
+      "description": "CDN URL for R2 images"
+    },
+    {
+      "key": "WRITE_API_TOKEN",
+      "description": "API token for write operations"
+    },
+    {
+      "key": "ADMIN_API_TOKEN",
+      "description": "API token for admin operations"
+    },
+    {
+      "key": "NEXT_PUBLIC_APP_URL",
+      "description": "Public app URL"
+    }
+  ]
+}

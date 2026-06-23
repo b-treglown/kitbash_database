@@ -8,19 +8,20 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- 2) Figures
-INSERT INTO figures (name, line_id, year, metadata)
+INSERT INTO figures (name, line_id, base_buck, year, metadata)
 SELECT
   v.name,
   l.id,
+  v.base_buck,
   v.year,
   v.metadata
 FROM (
   VALUES
-    ('Vulcan', 'Marvel Legends', 2023, '{"character": "Vulcan"}'::jsonb),
-    ('Astonishing Cyclops', 'Marvel Legends', 2024, '{"character": "Cyclops"}'::jsonb),
-    ('Havok', 'Marvel Legends', 2024, '{"character": "Havok"}'::jsonb),
-    ('Retro Spider-Man', 'Marvel Legends', 2020, '{"character": "Spider-Man"}'::jsonb)
-) AS v(name, line_name, year, metadata)
+    ('Vulcan', 'Marvel Legends', 'Vulcan Buck', 2023, '{"character": "Vulcan"}'::jsonb),
+    ('Astonishing Cyclops', 'Marvel Legends', 'Vulcan Buck', 2024, '{"character": "Cyclops"}'::jsonb),
+    ('Havok', 'Marvel Legends', 'Vulcan Buck', 2024, '{"character": "Havok"}'::jsonb),
+    ('Retro Spider-Man', 'Marvel Legends', 'unique', 2020, '{"character": "Spider-Man"}'::jsonb)
+) AS v(name, line_name, base_buck, year, metadata)
 JOIN lines l ON l.name = v.line_name
 ON CONFLICT (name, line_id) DO NOTHING;
 

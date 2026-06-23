@@ -79,7 +79,7 @@ export default function Home() {
       </section>
 
       {/* Quick Links */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Link
           href="/browse/figures"
           className="p-6 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
@@ -95,11 +95,32 @@ export default function Home() {
           <p className="text-gray-600">See community creations</p>
         </Link>
         <Link
-          href="/create"
+          href="/upload"
           className="p-6 bg-purple-50 rounded-lg hover:bg-purple-100 transition"
         >
-          <h3 className="text-xl font-bold mb-2">Create Kitbash</h3>
-          <p className="text-gray-600">Build and share your custom</p>
+          <h3 className="text-xl font-bold mb-2">Uploads</h3>
+          <p className="text-gray-600">Open all upload workflows</p>
+        </Link>
+        <Link
+          href="/upload/figure-info"
+          className="p-6 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition"
+        >
+          <h3 className="text-xl font-bold mb-2">Upload Figure Info</h3>
+          <p className="text-gray-600">Add or enrich figure details</p>
+        </Link>
+        <Link
+          href="/upload/figure-change"
+          className="p-6 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition"
+        >
+          <h3 className="text-xl font-bold mb-2">Submit Figure Change</h3>
+          <p className="text-gray-600">Propose corrections to figure records</p>
+        </Link>
+        <Link
+          href="/upload/compatibility"
+          className="p-6 bg-amber-50 rounded-lg hover:bg-amber-100 transition"
+        >
+          <h3 className="text-xl font-bold mb-2">Upload Compatibility</h3>
+          <p className="text-gray-600">Submit fit results between parts</p>
         </Link>
       </section>
 

@@ -18,6 +18,7 @@ export interface Figure {
   name: string;
   line_id: string;
   line_name?: string;
+  base_buck?: string;
   year?: number;
   metadata?: Record<string, any>;
   created_at: string;

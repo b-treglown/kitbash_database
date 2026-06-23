@@ -29,8 +29,11 @@ export default function RootLayout({
               <a href="/browse" className="hover:text-slate-200">
                 Browse
               </a>
-              <a href="/create" className="hover:text-slate-200">
-                Create
+              <a href="/upload" className="hover:text-slate-200">
+                Uploads
+              </a>
+              <a href="/upload/compatibility" className="hover:text-slate-200">
+                Upload Compatibility
               </a>
             </div>
           </nav>

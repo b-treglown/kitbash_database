@@ -6,6 +6,7 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import {
   enforceRateLimit,
   isSafePathSegment,
@@ -15,8 +16,7 @@ import {
 } from '@/lib/requestSecurity';
 
 /**
- * For local development, saves to /public/uploads
- * In production, would use R2 API
+ * Uses Cloudflare R2 when configured, otherwise saves to /public/uploads for local dev.
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return secureJson({ error: 'Unsupported file type' }, { status: 400 });
     }
 
-    // Generate filename
+    // Generate filename and storage key
     const timestamp = Date.now();
     const randomId = crypto.randomUUID();
     const extMap: Record<string, string> = {
@@ -68,25 +68,75 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
     const ext = extMap[file.type] || 'jpg';
     const filename = `${type}-${timestamp}-${randomId}.${ext}`;
-    const relativeDir = join('uploads', prefix);
+    const relativeDir = join('uploads', prefix).replace(/\\/g, '/');
+    const storageKey = `${relativeDir}/${filename}`;
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const accountId = process.env.NEXT_PUBLIC_R2_ACCOUNT_ID;
+    const bucket = process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const publicBaseUrl =
+      process.env.NEXT_PUBLIC_R2_PUBLIC_BASE_URL || process.env.R2_CDN_URL || '';
+
+    const r2Configured =
+      !!accountId && !!bucket && !!accessKeyId && !!secretAccessKey;
+
+    if (r2Configured) {
+      const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+      const s3 = new S3Client({
+        region: 'auto',
+        endpoint,
+        credentials: {
+          accessKeyId,
+          secretAccessKey,
+        },
+      });
+
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: storageKey,
+          Body: buffer,
+          ContentType: file.type,
+          CacheControl: 'public, max-age=31536000, immutable',
+        })
+      );
+
+      const url = publicBaseUrl
+        ? `${publicBaseUrl.replace(/\/$/, '')}/${storageKey}`
+        : `https://${bucket}.${accountId}.r2.cloudflarestorage.com/${storageKey}`;
+
+      return secureJson(
+        {
+          success: true,
+          url,
+          filename,
+          key: storageKey,
+          provider: 'r2',
+        },
+        { status: 200 }
+      );
+    }
+
+    // Local fallback
     const absoluteDir = join(process.cwd(), 'public', relativeDir);
     const filepath = join(absoluteDir, filename);
-
-    // For local dev, save to public folder
-    // In production, this would upload to R2
-    const buffer = Buffer.from(await file.arrayBuffer());
 
     await mkdir(absoluteDir, { recursive: true });
     await writeFile(filepath, buffer);
 
     const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
-    const url = `${origin}/${relativeDir.replace(/\\/g, '/')}/${filename}`;
+    const url = `${origin}/${storageKey}`;
 
     return secureJson(
       {
         success: true,
         url,
         filename,
+        key: storageKey,
+        provider: 'local',
       },
       { status: 200 }
     );

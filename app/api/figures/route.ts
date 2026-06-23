@@ -4,7 +4,7 @@
  * POST /api/figures
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import * as figureService from '@/services/figureService';
 import {
   enforceRateLimit,
@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
 
     const name = typeof body.name === 'string' ? sanitizeText(body.name, 120) : '';
     const line = typeof body.line === 'string' ? sanitizeText(body.line, 120) : '';
+    const baseBuck = typeof body.baseBuck === 'string' ? sanitizeText(body.baseBuck, 120) : 'unique';
     const year = body.year;
 
     if (!name || !line) {
@@ -84,12 +85,22 @@ export async function POST(request: NextRequest) {
       return secureJson({ error: 'Invalid year value' }, { status: 400 });
     }
 
+    if (!baseBuck) {
+      return secureJson({ error: 'baseBuck is required' }, { status: 400 });
+    }
+
     const metadata = body.metadata;
     if (metadata !== undefined && (typeof metadata !== 'object' || Array.isArray(metadata))) {
       return secureJson({ error: 'metadata must be an object' }, { status: 400 });
     }
 
-    const figure = await figureService.createFigure(body);
+    const figure = await figureService.createFigure({
+      name,
+      line,
+      base_buck: baseBuck,
+      year,
+      metadata,
+    });
 
     if (!figure) {
       return secureJson(

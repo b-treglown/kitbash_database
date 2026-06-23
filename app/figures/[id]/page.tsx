@@ -7,6 +7,7 @@ type Figure = {
   id: string;
   name: string;
   line_name?: string;
+  base_buck?: string;
   year?: number;
 };
 
@@ -122,6 +123,7 @@ export default function FigureDetailPage({ params }: { params: { id: string } })
           {figure.line_name || 'Unknown line'}
           {figure.year ? ` • ${figure.year}` : ''}
         </p>
+        <p className="text-sm text-gray-700 mt-1">Base buck: {figure.base_buck || 'unique'}</p>
       </section>
 
       <section className="space-y-3">

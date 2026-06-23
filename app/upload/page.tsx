@@ -1,12 +1,12 @@
 import Link from 'next/link';
 
-export default function CreatePage() {
+export default function UploadHubPage() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="text-3xl font-bold mb-2">Upload Types</h2>
+        <h2 className="text-3xl font-bold mb-2">Uploads</h2>
         <p className="text-gray-600">
-          Use one of the three upload flows below.
+          Choose the upload type that matches your contribution.
         </p>
       </section>
 
@@ -16,7 +16,7 @@ export default function CreatePage() {
           className="p-6 bg-amber-50 rounded-lg border border-amber-200 hover:bg-amber-100 transition"
         >
           <h3 className="text-xl font-bold mb-2">Compatibility Uploads</h3>
-          <p className="text-gray-700">Submit part fit and compatibility claims.</p>
+          <p className="text-gray-700">Submit fit results between two parts.</p>
         </Link>
 
         <Link
@@ -24,7 +24,7 @@ export default function CreatePage() {
           className="p-6 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition"
         >
           <h3 className="text-xl font-bold mb-2">Figure Information Uploads</h3>
-          <p className="text-gray-700">Submit figure details and base buck info.</p>
+          <p className="text-gray-700">Add or enrich figure details like line, base buck, and references.</p>
         </Link>
 
         <Link
@@ -32,7 +32,7 @@ export default function CreatePage() {
           className="p-6 bg-emerald-50 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition"
         >
           <h3 className="text-xl font-bold mb-2">Figure Change Requests</h3>
-          <p className="text-gray-700">Propose corrections to existing figure records.</p>
+          <p className="text-gray-700">Submit corrections to existing figure data.</p>
         </Link>
       </section>
     </div>

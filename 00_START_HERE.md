@@ -24,6 +24,9 @@ This is a complete, production-ready skeleton for a **community-driven action fi
 - ✅ **GETTING_STARTED.md** — Quick start (read this first!)
 - ✅ **SETUP_CHECKLIST.md** — Step-by-step verification
 - ✅ **SUPABASE_SETUP.md** — Database configuration
+- ✅ **DEPLOYMENT_CLOUDFLARE_VERCEL.md** — Cloudflare + Vercel hosting setup
+- ✅ **VERCEL_ENV_SETUP.md** — One-click Vercel environment variable import
+- ✅ **ADMIN_MODERATION_GUIDE.md** — How to approve/apply community contributions
 - ✅ **DEVELOPMENT_ROADMAP.md** — How to build Phase 2-3 features
 - ✅ **SAMPLE_DATA.sql** — Test data for the database
 
@@ -39,6 +42,7 @@ This is a complete, production-ready skeleton for a **community-driven action fi
 │   ├── api/figures/               ← Figure CRUD API
 │   ├── api/search/                ← Search API (Phase 3)
 │   ├── api/upload/                ← Image upload API
+│   ├── upload/                    ← Upload flow pages
 │   ├── layout.tsx                 ← Root layout
 │   ├── page.tsx                   ← Home page with search
 │   └── globals.css                ← Tailwind setup
@@ -96,13 +100,16 @@ http://localhost:3000
 3. [**PROJECT_STRUCTURE.md**](PROJECT_STRUCTURE.md) — Understand the layout
 4. [**README.md**](README.md) — Full architecture details
 5. [**DEVELOPMENT_ROADMAP.md**](DEVELOPMENT_ROADMAP.md) — Build Phase 2-3 features
+6. [**DEPLOYMENT_CLOUDFLARE_VERCEL.md**](DEPLOYMENT_CLOUDFLARE_VERCEL.md) — Deploy frontend + image hosting
+7. [**VERCEL_ENV_SETUP.md**](VERCEL_ENV_SETUP.md) — Quick environment variable setup for Vercel
+8. [**ADMIN_MODERATION_GUIDE.md**](ADMIN_MODERATION_GUIDE.md) — Review and approve community contributions
 
 ## 🎯 What's Already Done (Phase 1-3)
 
 ### Phase 1: Foundation ✅
 - Database schema with all relationships
 - CRUD operations for figures, parts, molds, kitbashes
-- Image upload infrastructure
+- Image upload infrastructure with Cloudflare R2 support
 - Type definitions
 
 ### Phase 2: Graph Features (Ready for UI)
@@ -116,6 +123,13 @@ http://localhost:3000
 - Duplicate detection algorithm
 - Levenshtein distance matching
 - Confidence scoring
+
+### Admin & Community Features ✅
+- Admin moderation dashboard for approving/rejecting claims
+- Three-tier upload system (compatibility, figure info, figure change)
+- Direct image file upload with preview (no URL needed)
+- Anonymous contribution tracking with confidence scores
+- Automatic figure matching for submissions
 
 ## 🔑 Key Architecture Decisions
 

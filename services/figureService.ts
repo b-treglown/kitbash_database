@@ -70,6 +70,7 @@ export async function getFigures(line?: string): Promise<Figure[]> {
       name: row.name,
       line_id: row.line_id,
       line_name: row.lines?.name,
+      base_buck: row.base_buck || undefined,
       year: row.year || undefined,
       metadata: row.metadata || undefined,
       created_at: row.created_at,
@@ -104,6 +105,7 @@ export async function getFigureById(id: string): Promise<Figure | null> {
     name: data.name,
     line_id: data.line_id,
     line_name: data.lines?.name,
+    base_buck: data.base_buck || undefined,
     year: data.year || undefined,
     metadata: data.metadata || undefined,
     created_at: data.created_at,
@@ -131,6 +133,7 @@ export async function searchFigures(query: string): Promise<Figure[]> {
     name: row.name,
     line_id: row.line_id,
     line_name: row.lines?.name,
+    base_buck: row.base_buck || undefined,
     year: row.year || undefined,
     metadata: row.metadata || undefined,
     created_at: row.created_at,
@@ -144,6 +147,7 @@ export async function searchFigures(query: string): Promise<Figure[]> {
 export async function createFigure(figure: {
   name: string;
   line: string;
+  base_buck?: string;
   year?: number;
   metadata?: Record<string, any>;
 }): Promise<Figure | null> {
@@ -152,6 +156,7 @@ export async function createFigure(figure: {
   const payload = {
     name: figure.name,
     line_id: line.id,
+    base_buck: figure.base_buck || 'unique',
     year: figure.year || null,
     metadata: figure.metadata || {},
   };
@@ -176,6 +181,7 @@ export async function createFigure(figure: {
     name: data.name,
     line_id: data.line_id,
     line_name: data.lines?.name,
+    base_buck: data.base_buck || undefined,
     year: data.year || undefined,
     metadata: data.metadata || undefined,
     created_at: data.created_at,
@@ -192,6 +198,7 @@ export async function updateFigure(
 ): Promise<Figure | null> {
   const updatePayload: Record<string, any> = {
     name: updates.name,
+    base_buck: updates.base_buck,
     year: updates.year,
     metadata: updates.metadata,
   };
@@ -224,6 +231,7 @@ export async function updateFigure(
     name: data.name,
     line_id: data.line_id,
     line_name: data.lines?.name,
+    base_buck: data.base_buck || undefined,
     year: data.year || undefined,
     metadata: data.metadata || undefined,
     created_at: data.created_at,
@@ -263,6 +271,7 @@ export async function getFiguresByLine(
       name: row.name,
       line_id: row.line_id,
       line_name: row.lines?.name,
+      base_buck: row.base_buck || undefined,
       year: row.year || undefined,
       metadata: row.metadata || undefined,
       created_at: row.created_at,

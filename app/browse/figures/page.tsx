@@ -7,6 +7,7 @@ type Figure = {
   id: string;
   name: string;
   line_name?: string;
+  base_buck?: string;
   year?: number;
 };
 
@@ -60,6 +61,9 @@ export default function BrowseFiguresPage() {
               <p className="text-sm text-gray-600">
                 {figure.line_name || 'Unknown line'}
                 {figure.year ? ` • ${figure.year}` : ''}
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                Base buck: {figure.base_buck || 'unique'}
               </p>
               <p className="text-sm text-blue-600 mt-2">View parts and compatibility</p>
             </Link>
